@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LibGhostty.Net/LibGhostty.Net.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LibGhostty.Net.Tests/LibGhostty.Net.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,19 @@
+artifacts/
+
+# Native submodule build and package output
+native/windows-terminal/bin/
+native/windows-terminal/obj/
+native/windows-terminal/packages/
+native/ghostty/.zig-cache/
+native/ghostty/zig-out/
+
+# .NET build output
+**/bin/
+**/obj/
+
+# Local IDE and environment files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo

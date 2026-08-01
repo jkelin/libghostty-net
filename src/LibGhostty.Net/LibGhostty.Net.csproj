@@ -1,0 +1,86 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>LibGhostty.Net</AssemblyName>
+    <RootNamespace>LibGhostty</RootNamespace>
+    <PackageId>LibGhostty.Net</PackageId>
+    <Description>Cross-platform .NET bindings for the Ghostty virtual terminal library.</Description>
+    <PackageTags>ghostty;terminal;vt;native;interop</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <NativeAssetsRoot>$(MSBuildProjectDirectory)/../../artifacts/native</NativeAssetsRoot>
+    <NoWarn>$(NoWarn);1591;CA1720</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <NativeAsset Include="$(NativeAssetsRoot)/win-x64/ghostty-vt.dll" Condition="Exists('$(NativeAssetsRoot)/win-x64/ghostty-vt.dll')">
+      <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/win-x64/conpty.dll" Condition="Exists('$(NativeAssetsRoot)/win-x64/conpty.dll')">
+      <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/win-x64/OpenConsole.exe" Condition="Exists('$(NativeAssetsRoot)/win-x64/OpenConsole.exe')">
+      <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    </NativeAsset>
+
+    <NativeAsset Include="$(NativeAssetsRoot)/linux-x64/libghostty-vt.so" Condition="Exists('$(NativeAssetsRoot)/linux-x64/libghostty-vt.so')">
+      <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/linux-x64/libmuxer-pty.so" Condition="Exists('$(NativeAssetsRoot)/linux-x64/libmuxer-pty.so')">
+      <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/linux-arm64/libghostty-vt.so" Condition="Exists('$(NativeAssetsRoot)/linux-arm64/libghostty-vt.so')">
+      <RuntimeIdentifier>linux-arm64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/linux-arm64/libmuxer-pty.so" Condition="Exists('$(NativeAssetsRoot)/linux-arm64/libmuxer-pty.so')">
+      <RuntimeIdentifier>linux-arm64</RuntimeIdentifier>
+    </NativeAsset>
+
+    <NativeAsset Include="$(NativeAssetsRoot)/osx-x64/libghostty-vt.dylib" Condition="Exists('$(NativeAssetsRoot)/osx-x64/libghostty-vt.dylib')">
+      <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/osx-x64/libmuxer-pty.dylib" Condition="Exists('$(NativeAssetsRoot)/osx-x64/libmuxer-pty.dylib')">
+      <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/osx-arm64/libghostty-vt.dylib" Condition="Exists('$(NativeAssetsRoot)/osx-arm64/libghostty-vt.dylib')">
+      <RuntimeIdentifier>osx-arm64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/osx-arm64/libmuxer-pty.dylib" Condition="Exists('$(NativeAssetsRoot)/osx-arm64/libmuxer-pty.dylib')">
+      <RuntimeIdentifier>osx-arm64</RuntimeIdentifier>
+    </NativeAsset>
+  </ItemGroup>
+
+  <Target Name="ValidateNativeAssetSets" BeforeTargets="Pack">
+    <Error Condition="Exists('$(NativeAssetsRoot)/win-x64/ghostty-vt.dll') and (!Exists('$(NativeAssetsRoot)/win-x64/conpty.dll') or !Exists('$(NativeAssetsRoot)/win-x64/OpenConsole.exe'))"
+           Text="win-x64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/win-x64/conpty.dll') and (!Exists('$(NativeAssetsRoot)/win-x64/ghostty-vt.dll') or !Exists('$(NativeAssetsRoot)/win-x64/OpenConsole.exe'))"
+           Text="win-x64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/win-x64/OpenConsole.exe') and (!Exists('$(NativeAssetsRoot)/win-x64/ghostty-vt.dll') or !Exists('$(NativeAssetsRoot)/win-x64/conpty.dll'))"
+           Text="win-x64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/linux-x64/libghostty-vt.so') and !Exists('$(NativeAssetsRoot)/linux-x64/libmuxer-pty.so')"
+           Text="linux-x64 native assets are incomplete. Build libghostty-vt.so and libmuxer-pty.so together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/linux-x64/libmuxer-pty.so') and !Exists('$(NativeAssetsRoot)/linux-x64/libghostty-vt.so')"
+           Text="linux-x64 native assets are incomplete. Build libghostty-vt.so and libmuxer-pty.so together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/linux-arm64/libghostty-vt.so') and !Exists('$(NativeAssetsRoot)/linux-arm64/libmuxer-pty.so')"
+           Text="linux-arm64 native assets are incomplete. Build libghostty-vt.so and libmuxer-pty.so together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/linux-arm64/libmuxer-pty.so') and !Exists('$(NativeAssetsRoot)/linux-arm64/libghostty-vt.so')"
+           Text="linux-arm64 native assets are incomplete. Build libghostty-vt.so and libmuxer-pty.so together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/osx-x64/libghostty-vt.dylib') and !Exists('$(NativeAssetsRoot)/osx-x64/libmuxer-pty.dylib')"
+           Text="osx-x64 native assets are incomplete. Build libghostty-vt.dylib and libmuxer-pty.dylib together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/osx-x64/libmuxer-pty.dylib') and !Exists('$(NativeAssetsRoot)/osx-x64/libghostty-vt.dylib')"
+           Text="osx-x64 native assets are incomplete. Build libghostty-vt.dylib and libmuxer-pty.dylib together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/osx-arm64/libghostty-vt.dylib') and !Exists('$(NativeAssetsRoot)/osx-arm64/libmuxer-pty.dylib')"
+           Text="osx-arm64 native assets are incomplete. Build libghostty-vt.dylib and libmuxer-pty.dylib together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/osx-arm64/libmuxer-pty.dylib') and !Exists('$(NativeAssetsRoot)/osx-arm64/libghostty-vt.dylib')"
+           Text="osx-arm64 native assets are incomplete. Build libghostty-vt.dylib and libmuxer-pty.dylib together." />
+  </Target>
+
+  <ItemGroup>
+    <None Include="@(NativeAsset)" Pack="true" PackagePath="runtimes/%(RuntimeIdentifier)/native/" Visible="false" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="PackNativeAssets" BeforeTargets="Pack">
+    <Error Condition="@(NativeAsset) == ''" Text="No native assets found under $(NativeAssetsRoot). Build the requested native runtime before packing." />
+  </Target>
+</Project>

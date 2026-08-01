@@ -1,0 +1,6 @@
+[submodule "native/windows-terminal"]
+	path = native/windows-terminal
+	url = https://github.com/microsoft/terminal.git
+[submodule "native/ghostty"]
+	path = native/ghostty
+	url = https://github.com/amanthanvi/winghostty.git
