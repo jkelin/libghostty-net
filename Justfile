@@ -4,9 +4,33 @@ set lists
 project := "src/LibGhostty.Net/LibGhostty.Net.csproj"
 native_root := justfile_directory() / "artifacts/native"
 ghostty_docker_image := "libghostty-net/ghostty-cross:zig-0.15.2"
-macos_sdk_context := env_var_or_default("MACOS_SDK_CONTEXT", "")
+macos_arm64_docker_image := "libghostty-net/ghostty-cross:zig-0.15.2-macos-arm64"
+macos_sdk_context := env_var_or_default("MACOS_SDK_CONTEXT", justfile_directory() / "artifacts/macos-sdk")
+macos_clt_dmg := env_var_or_default("MACOS_CLT_DMG", "")
+macos_sdk_version := env_var_or_default("MACOS_SDK_VERSION", "15.4")
+macos_sdk_extractor_image := "libghostty-net/macos-sdk-extractor:osxcross-27d21e49"
 tests_project := "tests/LibGhostty.Net.Tests/LibGhostty.Net.Tests.csproj"
 tests_image := "libghostty-net/ghostty-tests:net8.0"
+nuget_package := "artifacts/packages/LibGhostty.Net.1.0.0.nupkg"
+nuget_source := env_var_or_default("NUGET_SOURCE", "https://api.nuget.org/v3/index.json")
+
+
+
+[doc('Extract the local Command Line Tools SDK through Docker')]
+macos_sdk_setup:
+    {{ if macos_clt_dmg == "" { error("Set MACOS_CLT_DMG to the downloaded Command Line Tools .dmg file.") } }}
+    docker build --platform linux/amd64 --file "{{ justfile_directory() / "docker/macos-sdk.Dockerfile" }}" --tag "{{ macos_sdk_extractor_image }}" "{{ justfile_directory() }}"
+    {{ if os() == "windows" { "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path '" + macos_sdk_context + "' | Out-Null\"" } else { "mkdir -p \"" + macos_sdk_context + "\"" } }}
+    docker run --rm --platform linux/amd64 --env "MACOS_SDK_VERSION={{ macos_sdk_version }}" --mount type=bind,source="{{ macos_clt_dmg }}",target=/input/Command_Line_Tools_for_Xcode_Extract.dmg,readonly --mount type=bind,source="{{ macos_sdk_context }}",target=/output "{{ macos_sdk_extractor_image }}" /input/Command_Line_Tools_for_Xcode_Extract.dmg /output
+    just macos_sdk_check
+
+
+
+[doc('Validate the configured macOS SDK context')]
+macos_sdk_check:
+    {{ if macos_sdk_context == "" { error("Set MACOS_SDK_CONTEXT to a directory containing an osxcross-compatible MacOSX*.sdk.tar.* archive.") } }}
+    {{ if os() == "windows" { "powershell -NoProfile -ExecutionPolicy Bypass -File \"" + justfile_directory() / "scripts/check-macos-sdk.ps1" + "\" -Context \"" + macos_sdk_context + "\"" } else { "test -d \"" + macos_sdk_context + "\" || (echo 'MACOS_SDK_CONTEXT is not a directory' >&2; exit 1); set -- \"" + macos_sdk_context + "\"/MacOSX*.sdk.tar.*; if [ \"$#\" -ne 1 ] || [ ! -f \"$1\" ]; then echo 'Expected exactly one MacOSX*.sdk.tar.* archive' >&2; exit 1; fi; printf '%s\\n' \"$1\"" } }}
+
 
 [doc('Build the managed library')]
 check:
@@ -40,6 +64,10 @@ test_macos: ghostty_macos
 pack: check
     dotnet pack "{{ project }}" --configuration Release --no-build --output "artifacts/packages" --verbosity minimal
 
+[doc('Build and publish the NuGet package with configured NuGet credentials')]
+publish: pack
+    dotnet nuget push "{{ nuget_package }}" --source "{{ nuget_source }}" --skip-duplicate --interactive
+
 [doc('Build Ghostty and the embedded Windows Terminal for the host Windows runtime')]
 [windows]
 native_windows: windows_terminal_release ghostty_windows_build
@@ -63,13 +91,33 @@ ghostty_linux:
     docker run --rm --platform linux/amd64 --workdir /workspace/native/ghostty --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --mount type=volume,source=libghostty-net-zig-cache-linux-x64,target=/zig-cache --env GHOSTTY_ZIG_CACHE_ROOT=/zig-cache "{{ ghostty_docker_image }}" linux-x64 x86_64-linux-gnu
     docker run --rm --platform linux/amd64 --workdir /workspace/native/ghostty --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --mount type=volume,source=libghostty-net-zig-cache-linux-arm64,target=/zig-cache --env GHOSTTY_ZIG_CACHE_ROOT=/zig-cache "{{ ghostty_docker_image }}" linux-arm64 aarch64-linux-gnu
 
-[doc('Build Ghostty and Unix PTY helpers for the macOS runtimes in Docker')]
-ghostty_macos:
-    {{ if macos_sdk_context == "" { error("Set MACOS_SDK_CONTEXT to a directory containing an osxcross-compatible MacOSX*.sdk.tar.* archive.") } }}
-    docker build --platform linux/amd64 --build-arg OSX_ARCH=arm64 --build-context apple-sdk="{{ macos_sdk_context }}" --file "{{ justfile_directory() / "docker/ghostty-cross.Dockerfile" }}" --target macos --tag "{{ ghostty_docker_image }}-macos-arm64" "{{ justfile_directory() }}"
-    docker run --rm --platform linux/amd64 --workdir /workspace/native/ghostty --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --mount type=volume,source=libghostty-net-zig-cache-osx-arm64,target=/zig-cache --env GHOSTTY_ZIG_CACHE_ROOT=/zig-cache "{{ ghostty_docker_image }}-macos-arm64" osx-arm64 aarch64-macos
+[doc('Build macOS ARM64 Ghostty and Unix PTY binaries in Docker')]
+build_macos_arm64: macos_sdk_check
+    docker build --platform linux/amd64 --build-arg OSX_ARCH=arm64 --build-context apple-sdk="{{ macos_sdk_context }}" --file "{{ justfile_directory() / "docker/ghostty-cross.Dockerfile" }}" --target macos --tag "{{ macos_arm64_docker_image }}" "{{ justfile_directory() }}"
+    docker run --rm --platform linux/amd64 --workdir /workspace/native/ghostty --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --mount type=volume,source=libghostty-net-zig-cache-osx-arm64,target=/zig-cache --env GHOSTTY_ZIG_CACHE_ROOT=/zig-cache "{{ macos_arm64_docker_image }}" osx-arm64 aarch64-macos.11.0
+
+[doc('Validate macOS ARM64 Mach-O files, exports, and cross-linking in Docker')]
+validate_macos_arm64: build_macos_arm64
+    docker run --rm --platform linux/amd64 --workdir /workspace --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --entrypoint /usr/local/bin/validate-macos "{{ macos_arm64_docker_image }}"
+
+[doc('Build, validate, package, and inspect macOS ARM64 native assets')]
+test_macos_arm64: validate_macos_arm64
+    just check
+    {{ if os() == "windows" { "powershell -NoProfile -Command \"if (Test-Path 'artifacts/macos-arm64-package-check') { Remove-Item 'artifacts/macos-arm64-package-check' -Recurse -Force }; New-Item -ItemType Directory -Path 'artifacts/macos-arm64-package-check' -Force | Out-Null\"" } else { "rm -rf artifacts/macos-arm64-package-check && mkdir -p artifacts/macos-arm64-package-check" } }}
+    dotnet pack "{{ project }}" --configuration Release --no-build --output "artifacts/macos-arm64-package-check" --verbosity minimal
+    docker run --rm --platform linux/amd64 --workdir /workspace --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --entrypoint /usr/local/bin/validate-macos "{{ macos_arm64_docker_image }}" /workspace/artifacts/native/osx-arm64 /workspace/artifacts/macos-arm64-package-check
+
+[doc('Build macOS x64 Ghostty and Unix PTY binaries in Docker')]
+build_macos_x64: macos_sdk_check
     docker build --platform linux/amd64 --build-arg OSX_ARCH=x86_64 --build-context apple-sdk="{{ macos_sdk_context }}" --file "{{ justfile_directory() / "docker/ghostty-cross.Dockerfile" }}" --target macos --tag "{{ ghostty_docker_image }}-macos-x64" "{{ justfile_directory() }}"
-    docker run --rm --platform linux/amd64 --workdir /workspace/native/ghostty --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --mount type=volume,source=libghostty-net-zig-cache-osx-x64,target=/zig-cache --env GHOSTTY_ZIG_CACHE_ROOT=/zig-cache "{{ ghostty_docker_image }}-macos-x64" osx-x64 x86_64-macos
+    docker run --rm --platform linux/amd64 --workdir /workspace/native/ghostty --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --mount type=volume,source=libghostty-net-zig-cache-osx-x64,target=/zig-cache --env GHOSTTY_ZIG_CACHE_ROOT=/zig-cache "{{ ghostty_docker_image }}-macos-x64" osx-x64 x86_64-macos.11.0
+
+[doc('Validate macOS x64 Mach-O files, exports, and cross-linking in Docker')]
+validate_macos_x64: build_macos_x64
+    docker run --rm --platform linux/amd64 --workdir /workspace --mount type=bind,source="{{ justfile_directory() }}",target=/workspace --entrypoint /usr/local/bin/validate-macos "{{ ghostty_docker_image }}-macos-x64" /workspace/artifacts/native/osx-x64
+
+[doc('Build and validate Ghostty and Unix PTY binaries for both macOS architectures')]
+ghostty_macos: validate_macos_arm64 validate_macos_x64
 
 [doc('Build the native assets for the current host runtime')]
 native:

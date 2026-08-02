@@ -3,10 +3,15 @@
     <AssemblyName>LibGhostty.Net</AssemblyName>
     <RootNamespace>LibGhostty</RootNamespace>
     <PackageId>LibGhostty.Net</PackageId>
-    <Description>Cross-platform .NET bindings for the Ghostty virtual terminal library.</Description>
-    <PackageTags>ghostty;terminal;vt;native;interop</PackageTags>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Title>LibGhostty.Net</Title>
+    <Authors>LibGhostty.Net contributors</Authors>
+    <Description>Cross-platform .NET 8 bindings for Ghostty's virtual-terminal engine, with platform-native PTY process hosting and packaged runtime assets for Windows, Linux, and macOS.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/jkelin/libghostty-net</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>ghostty;terminal;virtual-terminal;vt;pty;conpty;console;cross-platform;native;interop</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <NativeAssetsRoot>$(MSBuildProjectDirectory)/../../artifacts/native</NativeAssetsRoot>
@@ -14,6 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="$(MSBuildProjectDirectory)/../../README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildProjectDirectory)/../../LICENSE" Pack="true" PackagePath="\" />
     <NativeAsset Include="$(NativeAssetsRoot)/win-x64/ghostty-vt.dll" Condition="Exists('$(NativeAssetsRoot)/win-x64/ghostty-vt.dll')">
       <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </NativeAsset>
