@@ -397,10 +397,9 @@ public sealed class WindowsPtyConnection : IGhosttyPtyConnection
                 StartupInfo = new NativeMethods.StartupInfo
                 {
                     Size = Marshal.SizeOf<NativeMethods.StartupInfoEx>(),
+
+                    // ConPTY clients route standard handles through the pseudoconsole.
                     Flags = StartfUseStdHandles,
-                    StandardInput = inputRead,
-                    StandardOutput = outputWrite,
-                    StandardError = outputWrite,
                 },
                 AttributeList = attributeList,
             };
@@ -412,7 +411,7 @@ public sealed class WindowsPtyConnection : IGhosttyPtyConnection
                     commandLine,
                     processAttributes: IntPtr.Zero,
                     threadAttributes: IntPtr.Zero,
-                    inheritHandles: true,
+                    inheritHandles: false,
                     creationFlags: ExtendedStartupInfoPresent | CreateUnicodeEnvironment,
                     environment: environmentBlock,
                     currentDirectory: options.Cwd,
