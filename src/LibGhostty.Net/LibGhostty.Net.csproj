@@ -5,7 +5,7 @@
     <PackageId>LibGhostty.Net</PackageId>
     <Title>LibGhostty.Net</Title>
     <Authors>LibGhostty.Net contributors</Authors>
-    <Description>Cross-platform .NET 8 bindings for Ghostty's virtual-terminal engine, with platform-native PTY process hosting and packaged runtime assets for Windows, Linux, and macOS.</Description>
+    <Description>Cross-platform .NET 10 bindings for Ghostty's virtual-terminal engine, with platform-native PTY process hosting and packaged runtime assets for Windows, Linux, and macOS.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/jkelin/libghostty-net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

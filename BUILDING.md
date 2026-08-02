@@ -6,7 +6,7 @@ This document covers building the managed library, native runtime assets, tests,
 
 Install the following tools before building:
 
-- .NET 8 SDK.
+- .NET 10 SDK.
 - [`just`](https://just.systems/) for the repository build recipes.
 - Git with submodule support.
 - Docker Desktop with the Linux container engine for Linux and macOS cross-builds.

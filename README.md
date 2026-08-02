@@ -1,6 +1,6 @@
 # LibGhostty.Net
 
-LibGhostty.Net is a cross-platform .NET 8 library for building terminal experiences on top of [Ghostty](https://ghostty.org/)'s virtual-terminal engine.
+LibGhostty.Net is a cross-platform .NET 10 library for building terminal experiences on top of [Ghostty](https://ghostty.org/)'s virtual-terminal engine.
 
 It provides two related layers:
 
@@ -21,7 +21,7 @@ The NuGet package contains the native assets needed by these runtime identifiers
 | `osx-x64` | Ghostty VT, Unix PTY helper | Minimum macOS deployment target: 11.0. |
 | `osx-arm64` | Ghostty VT, Unix PTY helper | Minimum macOS deployment target: 11.0. |
 
-The managed assembly targets `net8.0`. Native assets are placed in the standard NuGet `runtimes/<rid>/native/` directories and are resolved automatically from the package output directory.
+The managed assembly targets `net10.0`. Native assets are placed in the standard NuGet `runtimes/<rid>/native/` directories and are resolved automatically from the package output directory.
 
 ## Installation
 
