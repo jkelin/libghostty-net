@@ -1,5 +1,6 @@
 set unstable
 set lists
+set dotenv-load := true
 
 project := "src/LibGhostty.Net/LibGhostty.Net.csproj"
 native_root := justfile_directory() / "artifacts/native"
@@ -13,6 +14,7 @@ tests_project := "tests/LibGhostty.Net.Tests/LibGhostty.Net.Tests.csproj"
 tests_image := "libghostty-net/ghostty-tests:net10.0"
 nuget_package := "artifacts/packages/LibGhostty.Net.1.0.1.nupkg"
 nuget_source := env_var_or_default("NUGET_SOURCE", "https://api.nuget.org/v3/index.json")
+nuget_push_command := if env_var_or_default("NUGET_API_KEY", "") == "" { "dotnet nuget push \"" + nuget_package + "\" --source \"" + nuget_source + "\" --skip-duplicate --interactive" } else if os() == "windows" { "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"" + (justfile_directory() / "scripts/publish-nuget.ps1") + "\" -Package \"" + nuget_package + "\" -Source \"" + nuget_source + "\"" } else { "dotnet nuget push \"" + nuget_package + "\" --source \"" + nuget_source + "\" --api-key \"$NUGET_API_KEY\" --skip-duplicate --interactive" }
 
 
 
@@ -66,7 +68,7 @@ pack: check
 
 [doc('Build and publish the NuGet package with configured NuGet credentials')]
 publish: pack
-    dotnet nuget push "{{ nuget_package }}" --source "{{ nuget_source }}" --skip-duplicate --interactive
+    {{ nuget_push_command }}
 
 [doc('Build Ghostty and the embedded Windows Terminal for the host Windows runtime')]
 [windows]

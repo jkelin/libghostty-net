@@ -16,4 +16,7 @@ native/ghostty/zig-out/
 .vscode/
 .idea/
 *.user
+
+# Local 1Password/NuGet environment configuration
+.env
 *.suo

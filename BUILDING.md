@@ -227,18 +227,30 @@ The published [LibGhostty.Net 1.0.1 package](https://www.nuget.org/packages/LibG
 
 ## Publishing to NuGet
 
-`just publish` builds the package and invokes `dotnet nuget push` with `--interactive`. The command reads source and credential settings from the normal NuGet configuration chain and can use a feed's credential provider:
+`just publish` builds the package and invokes `dotnet nuget push` with `--interactive`. If `NUGET_API_KEY` is set, the recipe passes it to the push command without embedding the value in the Justfile. Otherwise, the normal NuGet configuration chain and feed credential providers are used:
 
 ```powershell
 $env:NUGET_SOURCE = "https://your-feed.example/v3/index.json"
 just publish
 ```
 
-There is no general `nuget login` command that creates a session for package publishing. The standalone `nuget.exe setapikey` command only stores an API key in `NuGet.Config`; it is not a username/password login flow. For private feeds, use the feed's supported credential provider or configure the source credentials in NuGet configuration. Avoid storing passwords in clear text.
+For a NuGet API key stored in 1Password, keep only the secret reference in a local, ignored `.env` file:
 
-Publishing to nuget.org still requires nuget.org's publishing credential. For CI, prefer [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing), which exchanges a GitHub Actions OIDC token for a short-lived credential. For a local nuget.org publish, use the authentication method required by nuget.org and its current package publishing policy.
+```dotenv
+NUGET_API_KEY=op://<vault>/<item>/<field>
+```
 
-The recipe uses `--skip-duplicate`, so publishing an already-existing package version is treated as a successful no-op. It does not place credentials in the Justfile or pass an API key on the command line.
+Resolve that reference only for the publish process:
+
+```powershell
+op run --env-file=.env -- just publish
+```
+
+There is no general `nuget login` command that creates a session for package publishing. The standalone `nuget.exe setapikey` command only stores an API key in `NuGet.Config`; it is not a username/password login flow. Avoid storing API keys or passwords directly in the repository.
+
+Publishing to nuget.org requires a nuget.org publishing credential. For CI, prefer [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing), which exchanges a GitHub Actions OIDC token for a short-lived credential.
+
+The recipe uses `--skip-duplicate`, so publishing an already-existing package version is treated as a successful no-op.
 
 ## Validation expectations
 
