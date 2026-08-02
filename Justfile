@@ -12,7 +12,7 @@ macos_sdk_version := env_var_or_default("MACOS_SDK_VERSION", "15.4")
 macos_sdk_extractor_image := "libghostty-net/macos-sdk-extractor:osxcross-27d21e49"
 tests_project := "tests/LibGhostty.Net.Tests/LibGhostty.Net.Tests.csproj"
 tests_image := "libghostty-net/ghostty-tests:net10.0"
-nuget_package := "artifacts/packages/LibGhostty.Net.1.0.1.nupkg"
+nuget_package := "artifacts/packages/LibGhostty.Net.1.0.2.nupkg"
 nuget_source := env_var_or_default("NUGET_SOURCE", "https://api.nuget.org/v3/index.json")
 nuget_push_command := if env_var_or_default("NUGET_API_KEY", "") == "" { "dotnet nuget push \"" + nuget_package + "\" --source \"" + nuget_source + "\" --skip-duplicate --interactive" } else if os() == "windows" { "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"" + (justfile_directory() / "scripts/publish-nuget.ps1") + "\" -Package \"" + nuget_package + "\" -Source \"" + nuget_source + "\"" } else { "dotnet nuget push \"" + nuget_package + "\" --source \"" + nuget_source + "\" --api-key \"$NUGET_API_KEY\" --skip-duplicate --interactive" }
 

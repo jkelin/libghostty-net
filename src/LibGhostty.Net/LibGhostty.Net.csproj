@@ -3,7 +3,7 @@
     <AssemblyName>LibGhostty.Net</AssemblyName>
     <RootNamespace>LibGhostty</RootNamespace>
     <PackageId>LibGhostty.Net</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Title>LibGhostty.Net</Title>
     <Authors>LibGhostty.Net contributors</Authors>
     <Description>Cross-platform .NET 10 bindings for Ghostty's virtual-terminal engine, with platform-native PTY process hosting and packaged runtime assets for Windows, Linux, and macOS.</Description>

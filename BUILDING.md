@@ -39,7 +39,7 @@ Run commands from the repository root. Native artifacts are written to `artifact
 The canonical package output is:
 
 ```text
-artifacts/packages/LibGhostty.Net.1.0.1.nupkg
+artifacts/packages/LibGhostty.Net.1.0.2.nupkg
 ```
 
 ## Windows native build
@@ -218,12 +218,12 @@ runtimes/osx-arm64/native/
 Inspect the package contents with:
 
 ```sh
-unzip -l artifacts/packages/LibGhostty.Net.1.0.1.nupkg
+unzip -l artifacts/packages/LibGhostty.Net.1.0.2.nupkg
 ```
 
 The package includes `README.md` as its NuGet package readme. Build instructions remain repository documentation in this file and are not copied into the package readme.
 
-The published [LibGhostty.Net 1.0.1 package](https://www.nuget.org/packages/LibGhostty.Net/1.0.1) is available on nuget.org.
+The published [LibGhostty.Net 1.0.2 package](https://www.nuget.org/packages/LibGhostty.Net/1.0.2) is available on nuget.org.
 
 ## Publishing to NuGet
 

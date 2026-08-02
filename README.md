@@ -34,17 +34,17 @@ The latest release is available on [NuGet](https://www.nuget.org/packages/LibGho
 dotnet add package LibGhostty.Net
 ```
 
-To install the published 1.0.1 release explicitly:
+To install the published 1.0.2 release explicitly:
 
 ```sh
-dotnet add package LibGhostty.Net --version 1.0.1
+dotnet add package LibGhostty.Net --version 1.0.2
 ```
 
 For a local package produced from this repository, use the package output directory as a source:
 
 ```powershell
 dotnet add path\to\YourProject.csproj package LibGhostty.Net `
-  --version 1.0.1 `
+  --version 1.0.2 `
   --source "path\to\libghostty-net\artifacts\packages"
 ```
 
