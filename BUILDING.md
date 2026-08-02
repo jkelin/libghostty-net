@@ -223,6 +223,8 @@ unzip -l artifacts/packages/LibGhostty.Net.1.0.0.nupkg
 
 The package includes `README.md` as its NuGet package readme. Build instructions remain repository documentation in this file and are not copied into the package readme.
 
+The published [LibGhostty.Net 1.0.0 package](https://www.nuget.org/packages/LibGhostty.Net/1.0.0) is available on nuget.org.
+
 ## Publishing to NuGet
 
 `just publish` builds the package and invokes `dotnet nuget push` with `--interactive`. The command reads source and credential settings from the normal NuGet configuration chain and can use a feed's credential provider:

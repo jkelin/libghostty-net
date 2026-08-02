@@ -1,5 +1,8 @@
 # LibGhostty.Net
 
+[![NuGet version](https://img.shields.io/nuget/v/LibGhostty.Net?logo=nuget)](https://www.nuget.org/packages/LibGhostty.Net/)
+[![NuGet downloads](https://img.shields.io/nuget/dt/LibGhostty.Net?logo=nuget)](https://www.nuget.org/packages/LibGhostty.Net/)
+
 LibGhostty.Net is a cross-platform .NET 10 library for building terminal experiences on top of [Ghostty](https://ghostty.org/)'s virtual-terminal engine.
 
 It provides two related layers:
@@ -25,10 +28,16 @@ The managed assembly targets `net10.0`. Native assets are placed in the standard
 
 ## Installation
 
-When the package is available from your NuGet feed:
+The latest release is available on [NuGet](https://www.nuget.org/packages/LibGhostty.Net/):
 
 ```sh
 dotnet add package LibGhostty.Net
+```
+
+To install the published 1.0.0 release explicitly:
+
+```sh
+dotnet add package LibGhostty.Net --version 1.0.0
 ```
 
 For a local package produced from this repository, use the package output directory as a source:
@@ -36,7 +45,7 @@ For a local package produced from this repository, use the package output direct
 ```powershell
 dotnet add path\to\YourProject.csproj package LibGhostty.Net `
   --version 1.0.0 `
-  --source "F:\Projects\oss\libghostty-net\artifacts\packages"
+  --source "path\to\libghostty-net\artifacts\packages"
 ```
 
 The package includes the managed API and the native runtime assets; applications should not copy the Ghostty or PTY binaries manually.
