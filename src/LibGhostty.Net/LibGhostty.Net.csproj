@@ -31,6 +31,15 @@
     <NativeAsset Include="$(NativeAssetsRoot)/win-x64/OpenConsole.exe" Condition="Exists('$(NativeAssetsRoot)/win-x64/OpenConsole.exe')">
       <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/win-arm64/ghostty-vt.dll" Condition="Exists('$(NativeAssetsRoot)/win-arm64/ghostty-vt.dll')">
+      <RuntimeIdentifier>win-arm64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/win-arm64/conpty.dll" Condition="Exists('$(NativeAssetsRoot)/win-arm64/conpty.dll')">
+      <RuntimeIdentifier>win-arm64</RuntimeIdentifier>
+    </NativeAsset>
+    <NativeAsset Include="$(NativeAssetsRoot)/win-arm64/OpenConsole.exe" Condition="Exists('$(NativeAssetsRoot)/win-arm64/OpenConsole.exe')">
+      <RuntimeIdentifier>win-arm64</RuntimeIdentifier>
+    </NativeAsset>
 
     <NativeAsset Include="$(NativeAssetsRoot)/linux-x64/libghostty-vt.so" Condition="Exists('$(NativeAssetsRoot)/linux-x64/libghostty-vt.so')">
       <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
@@ -66,6 +75,12 @@
            Text="win-x64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
     <Error Condition="Exists('$(NativeAssetsRoot)/win-x64/OpenConsole.exe') and (!Exists('$(NativeAssetsRoot)/win-x64/ghostty-vt.dll') or !Exists('$(NativeAssetsRoot)/win-x64/conpty.dll'))"
            Text="win-x64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/win-arm64/ghostty-vt.dll') and (!Exists('$(NativeAssetsRoot)/win-arm64/conpty.dll') or !Exists('$(NativeAssetsRoot)/win-arm64/OpenConsole.exe'))"
+           Text="win-arm64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/win-arm64/conpty.dll') and (!Exists('$(NativeAssetsRoot)/win-arm64/ghostty-vt.dll') or !Exists('$(NativeAssetsRoot)/win-arm64/OpenConsole.exe'))"
+           Text="win-arm64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
+    <Error Condition="Exists('$(NativeAssetsRoot)/win-arm64/OpenConsole.exe') and (!Exists('$(NativeAssetsRoot)/win-arm64/ghostty-vt.dll') or !Exists('$(NativeAssetsRoot)/win-arm64/conpty.dll'))"
+           Text="win-arm64 native assets are incomplete. Build ghostty-vt.dll, conpty.dll, and OpenConsole.exe together." />
     <Error Condition="Exists('$(NativeAssetsRoot)/linux-x64/libghostty-vt.so') and !Exists('$(NativeAssetsRoot)/linux-x64/libmuxer-pty.so')"
            Text="linux-x64 native assets are incomplete. Build libghostty-vt.so and libmuxer-pty.so together." />
     <Error Condition="Exists('$(NativeAssetsRoot)/linux-x64/libmuxer-pty.so') and !Exists('$(NativeAssetsRoot)/linux-x64/libghostty-vt.so')"

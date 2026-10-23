@@ -70,22 +70,35 @@ pack: check
 publish: pack
     {{ nuget_push_command }}
 
-[doc('Build Ghostty and the embedded Windows Terminal for the host Windows runtime')]
+[doc('Build Ghostty and the embedded Windows Terminal for both supported Windows runtimes')]
 [windows]
-native_windows: windows_terminal_release ghostty_windows_build
+native_windows: windows_terminal_release_x64 ghostty_windows_build_x64 windows_terminal_release_arm64 ghostty_windows_build_arm64
 
-[doc('Build the vendored Windows Terminal ConPTY DLL and OpenConsole host')]
+[doc('Build the vendored Windows Terminal ConPTY DLL and OpenConsole host for Windows x64')]
 [private]
 [script("cmd.exe", "/d", "/s", "/c")]
 [windows]
-windows_terminal_release:
-    call "{{ justfile_directory() / "scripts/build-windows-terminal.cmd" }}"
+windows_terminal_release_x64:
+    call "{{ justfile_directory() / "scripts/build-windows-terminal.cmd" }}" x64
+
+[doc('Build the vendored Windows Terminal ConPTY DLL and OpenConsole host for Windows ARM64')]
+[private]
+[script("cmd.exe", "/d", "/s", "/c")]
+[windows]
+windows_terminal_release_arm64:
+    call "{{ justfile_directory() / "scripts/build-windows-terminal.cmd" }}" arm64
 
 [doc('Build the Ghostty Windows x64 dynamic library')]
 [private]
 [working-directory("native/ghostty")]
-ghostty_windows_build:
+ghostty_windows_build_x64:
     zig build --cache-dir "../../artifacts/ghostty-zig-cache-win-x64" --prefix "{{ native_root / "win-x64" }}" --prefix-exe-dir . --prefix-lib-dir . -Dtarget=x86_64-windows-msvc -Dfont-backend=freetype -Doptimize=ReleaseSafe -Demit-lib-vt=true -Demit-exe=false
+
+[doc('Build the Ghostty Windows ARM64 dynamic library')]
+[private]
+[working-directory("native/ghostty")]
+ghostty_windows_build_arm64:
+    zig build --cache-dir "../../artifacts/ghostty-zig-cache-win-arm64" --prefix "{{ native_root / "win-arm64" }}" --prefix-exe-dir . --prefix-lib-dir . -Dtarget=aarch64-windows-msvc -Dfont-backend=freetype -Doptimize=ReleaseSafe -Demit-lib-vt=true -Demit-exe=false
 
 [doc('Build Ghostty and Unix PTY helpers for the Linux runtimes in Docker')]
 ghostty_linux:

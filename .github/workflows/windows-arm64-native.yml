@@ -1,0 +1,86 @@
+name: Windows ARM64 native assets
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'Justfile'
+      - 'scripts/build-windows-terminal.cmd'
+      - 'src/LibGhostty.Net/**'
+      - 'tests/LibGhostty.Net.Tests/**'
+      - 'native/ghostty'
+      - 'native/windows-terminal'
+      - '.github/workflows/windows-arm64-native.yml'
+  pull_request:
+    paths:
+      - 'Justfile'
+      - 'scripts/build-windows-terminal.cmd'
+      - 'src/LibGhostty.Net/**'
+      - 'tests/LibGhostty.Net.Tests/**'
+      - 'native/ghostty'
+      - 'native/windows-terminal'
+      - '.github/workflows/windows-arm64-native.yml'
+  workflow_dispatch:
+
+jobs:
+  native-assets:
+    name: Build and test win-arm64 assets
+    runs-on: windows-11-arm
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+          architecture: arm64
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+      - name: Build the ARM64 Windows native assets
+        shell: pwsh
+        run: |
+          cmd /d /s /c scripts\build-windows-terminal.cmd arm64
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Push-Location native/ghostty
+          zig build --cache-dir ../../artifacts/ghostty-zig-cache-win-arm64 --prefix ../../artifacts/native/win-arm64 --prefix-exe-dir . --prefix-lib-dir . -Dtarget=aarch64-windows-msvc -Dfont-backend=freetype -Doptimize=ReleaseSafe -Demit-lib-vt=true -Demit-exe=false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Pop-Location
+      - name: Verify and test the ARM64 assets
+        shell: pwsh
+        run: |
+          $native = Join-Path $PWD 'artifacts/native/win-arm64'
+          $required = 'ghostty-vt.dll', 'conpty.dll', 'OpenConsole.exe'
+          foreach ($file in $required) {
+            $path = Join-Path $native $file
+            if (-not (Test-Path -LiteralPath $path)) { throw "Missing ARM64 native asset: $path" }
+          }
+          $env:LIBGHOSTTY_NATIVE_DIR = $native
+          dotnet build tests/LibGhostty.Net.Tests/LibGhostty.Net.Tests.csproj --configuration Release --verbosity minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet vstest tests/LibGhostty.Net.Tests/bin/Release/net10.0/LibGhostty.Net.Tests.dll '--logger:console;verbosity=normal'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Pack and inspect the ARM64 package assets
+        shell: pwsh
+        run: |
+          dotnet pack src/LibGhostty.Net/LibGhostty.Net.csproj --configuration Release --no-build --output artifacts/packages -p:Version=1.0.3-arm64-ci --verbosity minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $package = Get-ChildItem artifacts/packages/LibGhostty.Net.1.0.3-arm64-ci.nupkg | Select-Object -First 1
+          if ($null -eq $package) { throw 'The ARM64 package was not produced.' }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($package.FullName)
+          try {
+            $entries = @($archive.Entries.FullName)
+            foreach ($file in 'ghostty-vt.dll', 'conpty.dll', 'OpenConsole.exe') {
+              if ($entries -notcontains "runtimes/win-arm64/native/$file") {
+                throw "The package lacks runtimes/win-arm64/native/$file."
+              }
+            }
+          } finally {
+            $archive.Dispose()
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LibGhostty.Net-win-arm64
+          path: artifacts/packages/LibGhostty.Net.1.0.3-arm64-ci.nupkg

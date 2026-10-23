@@ -4,6 +4,22 @@ namespace LibGhostty.Net.Tests;
 
 public sealed class GhosttyRuntimeAssetsTests
 {
+	[Theory]
+	[InlineData(true, false, false, System.Runtime.InteropServices.Architecture.X64, "win-x64")]
+	[InlineData(true, false, false, System.Runtime.InteropServices.Architecture.Arm64, "win-arm64")]
+	[InlineData(false, true, false, System.Runtime.InteropServices.Architecture.Arm64, "linux-arm64")]
+	[InlineData(false, false, true, System.Runtime.InteropServices.Architecture.Arm64, "osx-arm64")]
+	public void RuntimeIdentifierUsesTheOperatingSystemAndProcessArchitecture(
+		bool isWindows,
+		bool isLinux,
+		bool isMacOS,
+		System.Runtime.InteropServices.Architecture architecture,
+		string expected
+	)
+	{
+		Assert.Equal(expected, GhosttyRuntimeAssets.ResolveRuntimeIdentifier(isWindows, isLinux, isMacOS, architecture));
+	}
+
     [Fact]
     public void ExplicitGhosttyPathIsNormalizedAndReturned()
     {

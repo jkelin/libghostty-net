@@ -140,35 +140,40 @@ public static class GhosttyRuntimeAssets
         }
     }
 
-    private static string ResolveRuntimeIdentifier()
+    private static string ResolveRuntimeIdentifier() => ResolveRuntimeIdentifier(
+        OperatingSystem.IsWindows(),
+        OperatingSystem.IsLinux(),
+        OperatingSystem.IsMacOS(),
+        RuntimeInformation.ProcessArchitecture
+    );
+
+    internal static string ResolveRuntimeIdentifier(
+        bool isWindows,
+        bool isLinux,
+        bool isMacOS,
+        Architecture processArchitecture
+    )
     {
-        var architecture = RuntimeInformation.ProcessArchitecture switch
+        var architecture = processArchitecture switch
         {
             Architecture.X64 => "x64",
             Architecture.Arm64 => "arm64",
             _ => throw new PlatformNotSupportedException(
-                $"Unsupported terminal architecture: {RuntimeInformation.ProcessArchitecture}."
+                $"Unsupported terminal architecture: {processArchitecture}."
             ),
         };
 
-        if (OperatingSystem.IsWindows())
+        if (isWindows)
         {
-            if (architecture != "x64")
-            {
-                throw new PlatformNotSupportedException(
-                    $"Unsupported Windows terminal architecture: {architecture}. Only x64 is supported."
-                );
-            }
-
-            return "win-x64";
+            return $"win-{architecture}";
         }
 
-        if (OperatingSystem.IsLinux())
+        if (isLinux)
         {
             return $"linux-{architecture}";
         }
 
-        if (OperatingSystem.IsMacOS())
+        if (isMacOS)
         {
             return $"osx-{architecture}";
         }

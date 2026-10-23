@@ -50,13 +50,13 @@ On Windows, build the native assets with:
 just native_windows
 ```
 
-This invokes `scripts/build-windows-terminal.cmd` to build the vendored Windows Terminal components and stages the following files under `artifacts/native/win-x64/`:
+This invokes `scripts/build-windows-terminal.cmd` once for each supported Windows architecture and stages the following files under both `artifacts/native/win-x64/` and `artifacts/native/win-arm64/`:
 
 - `ghostty-vt.dll`
 - `conpty.dll`
 - `OpenConsole.exe`
 
-The current Windows package supports x64. The Windows Terminal build requires Visual Studio's C++ tools, the Windows SDK, and the terminal repository's generated/build dependencies.
+The Windows package supports x64 and ARM64. The Windows Terminal build requires Visual Studio's C++ tools (including ARM64 targets), the Windows SDK, and the terminal repository's generated/build dependencies.
 
 After native assets are available, run the managed tests and package build:
 
@@ -198,6 +198,10 @@ The project fails the pack operation when no native assets are available or when
 
 ```text
 runtimes/win-x64/native/
+ ghostty-vt.dll
+ conpty.dll
+ OpenConsole.exe
+runtimes/win-arm64/native/
  ghostty-vt.dll
  conpty.dll
  OpenConsole.exe

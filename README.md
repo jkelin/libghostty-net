@@ -19,6 +19,7 @@ The NuGet package contains the native assets needed by these runtime identifiers
 | Runtime | Native components | Notes |
 | --- | --- | --- |
 | `win-x64` | Ghostty VT, ConPTY, Windows Terminal `OpenConsole.exe` | Windows x64 is currently supported. |
+| `win-arm64` | Ghostty VT, ConPTY, Windows Terminal `OpenConsole.exe` | Windows ARM64 is currently supported. |
 | `linux-x64` | Ghostty VT, Unix PTY helper | |
 | `linux-arm64` | Ghostty VT, Unix PTY helper | |
 | `osx-x64` | Ghostty VT, Unix PTY helper | Minimum macOS deployment target: 11.0. |

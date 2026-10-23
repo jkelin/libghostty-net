@@ -5,7 +5,22 @@ set "ROOT=%~dp0.."
 for %%I in ("%ROOT%") do set "ROOT=%%~fI"
 set "WINDOWS_TERMINAL_ROOT=%ROOT%\native\windows-terminal"
 set "OVERLAY_DIRECTORY=%ROOT%\artifacts\vcpkg-overlays"
-set "NATIVE_DIRECTORY=%ROOT%\artifacts\native\win-x64"
+set "TARGET_ARCH=%~1"
+if /i "%TARGET_ARCH%"=="x64" (
+  set "RUNTIME_IDENTIFIER=win-x64"
+  set "PLATFORM=x64"
+  set "VCPKG_ARCHITECTURE=x64"
+  set "VCVARS_ARGUMENT=x64"
+) else if /i "%TARGET_ARCH%"=="arm64" (
+  set "RUNTIME_IDENTIFIER=win-arm64"
+  set "PLATFORM=ARM64"
+  set "VCPKG_ARCHITECTURE=arm64"
+  set "VCVARS_ARGUMENT=x64_arm64"
+) else (
+  echo Usage: %~nx0 ^<x64^|arm64^> 1>&2
+  exit /b 1
+)
+set "NATIVE_DIRECTORY=%ROOT%\artifacts\native\%RUNTIME_IDENTIFIER%"
 
 if not exist "%WINDOWS_TERMINAL_ROOT%\OpenConsole.slnx" (
   echo Windows Terminal submodule is missing. Initialize native/windows-terminal first. 1>&2
@@ -25,13 +40,13 @@ if not defined VS_INSTALLATION_PATH (
   exit /b 1
 )
 
-set "VCVARS=%VS_INSTALLATION_PATH%\VC\Auxiliary\Build\vcvars64.bat"
+set "VCVARS=%VS_INSTALLATION_PATH%\VC\Auxiliary\Build\vcvarsall.bat"
 if not exist "%VCVARS%" (
   echo Visual Studio C++ environment script is missing: %VCVARS% 1>&2
   exit /b 1
 )
 
-call "%VCVARS%"
+call "%VCVARS%" %VCVARS_ARGUMENT%
 if errorlevel 1 (
   echo Visual Studio C++ environment setup failed. 1>&2
   exit /b 1
@@ -48,13 +63,12 @@ if "%VC_MAJOR%"=="14" if %VC_MINOR% GEQ 50 (
   set "VISUAL_STUDIO_VERSION=18.0"
 )
 
-set "Platform=x64"
 set "VCPKG_PLATFORM_TOOLSET=%PLATFORM_TOOLSET%"
 if not exist "%OVERLAY_DIRECTORY%" mkdir "%OVERLAY_DIRECTORY%"
-> "%OVERLAY_DIRECTORY%\x64-windows-static.cmake" echo set(VCPKG_TARGET_ARCHITECTURE x64)
->> "%OVERLAY_DIRECTORY%\x64-windows-static.cmake" echo set(VCPKG_CRT_LINKAGE static)
->> "%OVERLAY_DIRECTORY%\x64-windows-static.cmake" echo set(VCPKG_LIBRARY_LINKAGE static)
->> "%OVERLAY_DIRECTORY%\x64-windows-static.cmake" echo set(VCPKG_PLATFORM_TOOLSET %PLATFORM_TOOLSET%)
+> "%OVERLAY_DIRECTORY%\%VCPKG_ARCHITECTURE%-windows-static.cmake" echo set(VCPKG_TARGET_ARCHITECTURE %VCPKG_ARCHITECTURE%)
+>> "%OVERLAY_DIRECTORY%\%VCPKG_ARCHITECTURE%-windows-static.cmake" echo set(VCPKG_CRT_LINKAGE static)
+>> "%OVERLAY_DIRECTORY%\%VCPKG_ARCHITECTURE%-windows-static.cmake" echo set(VCPKG_LIBRARY_LINKAGE static)
+>> "%OVERLAY_DIRECTORY%\%VCPKG_ARCHITECTURE%-windows-static.cmake" echo set(VCPKG_PLATFORM_TOOLSET %PLATFORM_TOOLSET%)
 
 pushd "%WINDOWS_TERMINAL_ROOT%"
 "%WINDOWS_TERMINAL_ROOT%\dep\nuget\nuget.exe" restore "%WINDOWS_TERMINAL_ROOT%\dep\nuget\packages.config"
@@ -64,14 +78,14 @@ if errorlevel 1 (
   exit /b 1
 )
 
-msbuild.exe ".\src\winconpty\dll\winconptydll.vcxproj" /m "/p:SolutionDir=%WINDOWS_TERMINAL_ROOT%/" /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=%VISUAL_STUDIO_VERSION% /p:PlatformToolset=%PLATFORM_TOOLSET% "/p:VcpkgAdditionalInstallOptions=--x-feature=terminal --overlay-triplets=%OVERLAY_DIRECTORY%"
+msbuild.exe ".\src\winconpty\dll\winconptydll.vcxproj" /m "/p:SolutionDir=%WINDOWS_TERMINAL_ROOT%/" /p:Configuration=Release /p:Platform=%PLATFORM% /p:VisualStudioVersion=%VISUAL_STUDIO_VERSION% /p:PlatformToolset=%PLATFORM_TOOLSET% "/p:VcpkgAdditionalInstallOptions=--x-feature=terminal --overlay-triplets=%OVERLAY_DIRECTORY%"
 if errorlevel 1 (
   popd
   echo Windows Terminal Release build failed: winconptydll.vcxproj 1>&2
   exit /b 1
 )
 
-msbuild.exe ".\src\host\exe\Host.EXE.vcxproj" /m "/p:SolutionDir=%WINDOWS_TERMINAL_ROOT%/" /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=%VISUAL_STUDIO_VERSION% /p:PlatformToolset=%PLATFORM_TOOLSET% "/p:VcpkgAdditionalInstallOptions=--x-feature=terminal --overlay-triplets=%OVERLAY_DIRECTORY%"
+msbuild.exe ".\src\host\exe\Host.EXE.vcxproj" /m "/p:SolutionDir=%WINDOWS_TERMINAL_ROOT%/" /p:Configuration=Release /p:Platform=%PLATFORM% /p:VisualStudioVersion=%VISUAL_STUDIO_VERSION% /p:PlatformToolset=%PLATFORM_TOOLSET% "/p:VcpkgAdditionalInstallOptions=--x-feature=terminal --overlay-triplets=%OVERLAY_DIRECTORY%"
 if errorlevel 1 (
   popd
   echo Windows Terminal Release build failed: Host.EXE.vcxproj 1>&2
@@ -80,7 +94,7 @@ if errorlevel 1 (
 popd
 
 if not exist "%NATIVE_DIRECTORY%" mkdir "%NATIVE_DIRECTORY%"
-copy /y "%WINDOWS_TERMINAL_ROOT%\bin\x64\Release\conpty.dll" "%NATIVE_DIRECTORY%\conpty.dll" >nul
+copy /y "%WINDOWS_TERMINAL_ROOT%\bin\%PLATFORM%\Release\conpty.dll" "%NATIVE_DIRECTORY%\conpty.dll" >nul
 if errorlevel 1 exit /b 1
-copy /y "%WINDOWS_TERMINAL_ROOT%\bin\x64\Release\OpenConsole.exe" "%NATIVE_DIRECTORY%\OpenConsole.exe" >nul
+copy /y "%WINDOWS_TERMINAL_ROOT%\bin\%PLATFORM%\Release\OpenConsole.exe" "%NATIVE_DIRECTORY%\OpenConsole.exe" >nul
 if errorlevel 1 exit /b 1
